@@ -898,13 +898,17 @@ function Invoke-Method {
         [Switch]$RawBody,
 
         [Hashtable]$Headers,
- 
+
         [Hashtable]$GetParameters,
 
         [String]$InFile,
 
         [String]$OutFile,
-   
+
+        [String]$PAT,
+
+        [String]$Cookie,
+
         [ValidateSet(
             [ConfluencePS.Page],
             [ConfluencePS.Space],
@@ -1708,12 +1712,12 @@ function Set-Info {
         [uri]$BaseURi,
 
         [PSCredential]$Credential,
-     
+
+        [UInt32]$PageSize,
+
         [String]$PAT,
 
         [String]$Cookie,
-
-        [UInt32]$PageSize,
 
         [switch]$PromptCredentials
     )
@@ -1762,6 +1766,11 @@ function Set-Info {
                 Add-ConfluenceDefaultParameter -Command $command -Parameter $parameter -Value $Credential
             }
 
+            $parameter = "PageSize"
+            if ($PageSize -and ($command.Parameters.Keys -contains $parameter)) {
+                Add-ConfluenceDefaultParameter -Command $command -Parameter $parameter -Value $PageSize
+            }
+
             $parameter = "PAT"
             if ($PAT -and ($command.Parameters.Keys -contains $parameter)) {
                 $global:PATValue = $PAT
@@ -1772,10 +1781,6 @@ function Set-Info {
                 $global:CookieValue = $Cookie
             }
 
-            $parameter = "PageSize"
-            if ($PageSize -and ($command.Parameters.Keys -contains $parameter)) {
-                Add-ConfluenceDefaultParameter -Command $command -Parameter $parameter -Value $PageSize
-            }
         }
     }
 }
@@ -2536,7 +2541,7 @@ function Invoke-WebRequest {
 
         [string]
         ${UserAgent},
-    
+
         [switch]
         ${DisableKeepAlive},
 
@@ -2592,12 +2597,14 @@ function Invoke-WebRequest {
             $PSBoundParameters["Headers"]["Authorization"] = "Basic $($SecureCreds)"
             $null = $PSBoundParameters.Remove("Credential")
         }
+
         If ($global:PATValue -ne ""){
             $PSBoundParameters["Headers"]['Authorization'] = "Bearer $global:PATValue"
         }
         If ($global:CookieValue -ne ""){
             $PSBoundParameters["Headers"]["Cookie"] = $global:CookieValue
         }
+
         if ($InFile) {
             $boundary = [System.Guid]::NewGuid().ToString()
             $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
@@ -2716,7 +2723,7 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
 
             [string]
             ${UserAgent},
-  
+
             [switch]
             ${DisableKeepAlive},
 
@@ -2791,11 +2798,11 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
             ${SkipHeaderValidation})
 
         begin {
-            $PSBoundParameters | fl
             if ($Credential -and (-not ($Authentication))) {
                 $PSBoundParameters["Authentication"] = "Basic"
             }
-            If ($global:PATValue -ne ""){ 
+
+            If ($global:PATValue -ne ""){
                 $PSBoundParameters["Headers"]['Authorization'] = "Bearer $global:PATValue"
             }
             If ($global:CookieValue -ne ""){
@@ -2835,7 +2842,6 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
                 $steppablePipeline.Process($_)
             }
             catch {
-                Write-Host $_
                 throw
             }
         }
