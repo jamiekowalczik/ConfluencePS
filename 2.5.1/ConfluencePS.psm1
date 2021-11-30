@@ -2602,7 +2602,7 @@ function Invoke-WebRequest {
             $PSBoundParameters["Headers"]['Authorization'] = "Bearer $global:PATValue"
         }
         If ($global:CookieValue -ne ""){
-            $PSBoundParameters["Headers"]["Cookie"] = $global:CookieValue
+            $PSBoundParameters["Headers"]["Cookie"] += $global:CookieValue
         }
 
         if ($InFile) {
@@ -2632,6 +2632,10 @@ Content-Type: application/octet-stream
                 $PSBoundParameters['OutBuffer'] = 1
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Invoke-WebRequest', [System.Management.Automation.CommandTypes]::Cmdlet)
+            foreach ($key in $PSBoundParameters.Headers.Keys){
+               Write-Debug "$key : $($PSBoundParameters.Headers[$key])"
+            }
+            Write-Debug $PSBoundParameters
             $scriptCmd = {& $wrappedCmd @PSBoundParameters }
             $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
             $steppablePipeline.Begin($PSCmdlet)
@@ -2829,6 +2833,11 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
                 }
                 $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Invoke-WebRequest', [System.Management.Automation.CommandTypes]::Cmdlet)
                 $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+                foreach ($key in $PSBoundParameters.Headers.Keys){
+                    Write-Debug "$key : $($PSBoundParameters.Headers[$key])"
+                }
+                Write-Debug $PSBoundParameters
+            Write-Host $PSBoundParameters
                 $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
                 $steppablePipeline.Begin($PSCmdlet)
             }
@@ -2977,5 +2986,3 @@ function Write-DebugMessage {
         $DebugPreference = $oldDebugPreference
     }
 }
-
-
