@@ -5,6 +5,7 @@ if (!("ConfluencePS.Space" -as [Type])) {
 }
 
 $global:PATValue = ""
+$global:CookieValue = ""
 
 # Load Web assembly when needed
 # PowerShell Core has the assembly preloaded
@@ -1710,6 +1711,8 @@ function Set-Info {
      
         [String]$PAT,
 
+        [String]$Cookie,
+
         [UInt32]$PageSize,
 
         [switch]$PromptCredentials
@@ -1762,6 +1765,11 @@ function Set-Info {
             $parameter = "PAT"
             if ($PAT -and ($command.Parameters.Keys -contains $parameter)) {
                 $global:PATValue = $PAT
+            }
+
+            $parameter = "Cookie"
+            if ($Cookie -and ($command.Parameters.Keys -contains $parameter)) {
+                $global:CookieValue = $Cookie
             }
 
             $parameter = "PageSize"
@@ -2587,7 +2595,9 @@ function Invoke-WebRequest {
         If ($global:PATValue -ne ""){
             $PSBoundParameters["Headers"]['Authorization'] = "Bearer $global:PATValue"
         }
-
+        If ($global:CookieValue -ne ""){
+            $PSBoundParameters["Headers"]["Cookie"] = $global:CookieValue
+        }
         if ($InFile) {
             $boundary = [System.Guid]::NewGuid().ToString()
             $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
@@ -2787,6 +2797,9 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
             }
             If ($global:PATValue -ne ""){ 
                 $PSBoundParameters["Headers"]['Authorization'] = "Bearer $global:PATValue"
+            }
+            If ($global:CookieValue -ne ""){
+                $PSBoundParameters["Headers"]["Cookie"] = $global:CookieValue
             }
             if ($InFile) {
                 $multipartContent = [System.Net.Http.MultipartFormDataContent]::new()
