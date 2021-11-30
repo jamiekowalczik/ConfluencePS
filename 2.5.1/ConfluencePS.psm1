@@ -1719,6 +1719,8 @@ function Set-Info {
 
         [String]$Cookie,
 
+        [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
+
         [switch]$PromptCredentials
     )
 
@@ -1769,6 +1771,11 @@ function Set-Info {
             $parameter = "PageSize"
             if ($PageSize -and ($command.Parameters.Keys -contains $parameter)) {
                 Add-ConfluenceDefaultParameter -Command $command -Parameter $parameter -Value $PageSize
+            }
+
+            $parameter = "WebSession"
+            if ($WebSession -and ($command.Parameters.Keys -contains $parameter)) {
+                Add-ConfluenceDefaultParameter -Command $command -Parameter $parameter -Value $WebSession
             }
 
             $parameter = "PAT"
@@ -2602,7 +2609,19 @@ function Invoke-WebRequest {
             $PSBoundParameters["Headers"]['Authorization'] = "Bearer $global:PATValue"
         }
         If ($global:CookieValue -ne ""){
-            $PSBoundParameters["Headers"]["Cookie"] += $global:CookieValue
+          try{
+            $cookie = New-Object system.net.cookie
+            $cookie.Name = $global:CookieValue.Split("=")[0]
+            $cookie.Value = $global:CookieValue.Split("=")[1]
+            $strURI = [String]$($PSBoundParameters["URI"])
+            $cookie.Domain = $strURI.Split("/")[2]
+            Write-Debug "Cookie Name: $($cookie.Name)"
+            Write-Debug "Cookie Value: $($cookie.Value)"
+            Write-Debug "Cookie Domain: $($cookie.Domain)"
+            $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+            $session.Cookies.Add($cookie)
+            $PSBoundParameters['WebSession'] = $session
+          }catch{ write-host $_ }
         }
 
         if ($InFile) {
@@ -2632,15 +2651,16 @@ Content-Type: application/octet-stream
                 $PSBoundParameters['OutBuffer'] = 1
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Invoke-WebRequest', [System.Management.Automation.CommandTypes]::Cmdlet)
-            foreach ($key in $PSBoundParameters.Headers.Keys){
-               Write-Debug "$key : $($PSBoundParameters.Headers[$key])"
-            }
-            Write-Debug $PSBoundParameters
+            #foreach ($key in $PSBoundParameters.Headers.Keys){
+            #   Write-Debug "$key : $($PSBoundParameters.Headers[$key])"
+            #}
+            #Write-Debug $PSBoundParameters
             $scriptCmd = {& $wrappedCmd @PSBoundParameters }
             $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
             $steppablePipeline.Begin($PSCmdlet)
         }
         catch {
+            Write-Host $_
             throw
         }
     }
@@ -2650,6 +2670,7 @@ Content-Type: application/octet-stream
             $steppablePipeline.Process($_)
         }
         catch {
+            Write-Host $_
             throw
         }
     }
@@ -2659,6 +2680,7 @@ Content-Type: application/octet-stream
             $steppablePipeline.End()
         }
         catch {
+            Write-Host $_
             throw
         }
     }
@@ -2837,6 +2859,7 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
                     Write-Debug "$key : $($PSBoundParameters.Headers[$key])"
                 }
                 Write-Debug $PSBoundParameters
+            Write-Host $PSBoundParameters
                 $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
                 $steppablePipeline.Begin($PSCmdlet)
             }
