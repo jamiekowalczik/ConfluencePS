@@ -2609,7 +2609,6 @@ function Invoke-WebRequest {
             $PSBoundParameters["Headers"]['Authorization'] = "Bearer $global:PATValue"
         }
         If ($global:CookieValue -ne ""){
-          try{
             $cookie = New-Object system.net.cookie
             $cookie.Name = $global:CookieValue.Split("=")[0]
             $cookie.Value = $global:CookieValue.Split("=")[1]
@@ -2621,7 +2620,6 @@ function Invoke-WebRequest {
             $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
             $session.Cookies.Add($cookie)
             $PSBoundParameters['WebSession'] = $session
-          }catch{ write-host $_ }
         }
 
         if ($InFile) {
@@ -2660,7 +2658,6 @@ Content-Type: application/octet-stream
             $steppablePipeline.Begin($PSCmdlet)
         }
         catch {
-            Write-Host $_
             throw
         }
     }
@@ -2670,7 +2667,6 @@ Content-Type: application/octet-stream
             $steppablePipeline.Process($_)
         }
         catch {
-            Write-Host $_
             throw
         }
     }
@@ -2680,7 +2676,6 @@ Content-Type: application/octet-stream
             $steppablePipeline.End()
         }
         catch {
-            Write-Host $_
             throw
         }
     }
