@@ -2649,10 +2649,10 @@ Content-Type: application/octet-stream
                 $PSBoundParameters['OutBuffer'] = 1
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Invoke-WebRequest', [System.Management.Automation.CommandTypes]::Cmdlet)
-            #foreach ($key in $PSBoundParameters.Headers.Keys){
-            #   Write-Debug "$key : $($PSBoundParameters.Headers[$key])"
-            #}
-            #Write-Debug $PSBoundParameters
+            foreach ($key in $PSBoundParameters.Headers.Keys){
+               Write-Debug "$key : $($PSBoundParameters.Headers[$key])"
+            }
+            Write-Debug $PSBoundParameters
             $scriptCmd = {& $wrappedCmd @PSBoundParameters }
             $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
             $steppablePipeline.Begin($PSCmdlet)
