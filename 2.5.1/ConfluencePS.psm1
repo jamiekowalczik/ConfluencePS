@@ -2854,7 +2854,6 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
                     Write-Debug "$key : $($PSBoundParameters.Headers[$key])"
                 }
                 Write-Debug $PSBoundParameters
-            Write-Host $PSBoundParameters
                 $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
                 $steppablePipeline.Begin($PSCmdlet)
             }
